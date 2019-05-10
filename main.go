@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"path"
 	"strings"
 )
 
@@ -35,14 +34,16 @@ func userEchoHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("++++++++")
 }
 
+type handler struct{}
+
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	sysEchoHandler(w, r)
+}
+
 func main() {
 	var addr string
-	var url string
 	flag.StringVar(&addr, "addr", "127.0.0.1:8000", "listen addr")
-	flag.StringVar(&url, "url", "", "serve url")
 	flag.Parse()
-	http.HandleFunc(path.Join("/", url), sysEchoHandler)
-	http.HandleFunc(path.Join("/", url, "sys"), sysEchoHandler)
-	http.HandleFunc(path.Join("/", url, "user"), userEchoHandler)
-	http.ListenAndServe(addr, nil)
+	var h handler
+	http.ListenAndServe(addr, h)
 }
